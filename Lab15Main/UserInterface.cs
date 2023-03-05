@@ -28,8 +28,12 @@ namespace Lab15Main
         public const float COEF = 10f;
         public const float SCALE = 10f;
 
+        public static readonly object locker = new();
+
         public static void Draw(RenderWindow window)
         {
+            window.SetActive(true);
+
             window.Clear(SFML.Graphics.Color.White);
 
             buttons.Reverse();
@@ -47,6 +51,8 @@ namespace Lab15Main
             points.Reverse();
 
             window.Display();
+
+            window.SetActive(false);
         }
 
         public static void Close(object? sender, EventArgs e)
@@ -104,7 +110,7 @@ namespace Lab15Main
                 float y = (float)Math.Sin(x);
                 var coordX = x * COEF;
                 var coordY = 0 - y * COEF + WINDOW_HEIGHT / 2;
-                lock (new object())
+                lock (locker)
                 {
                     points.Add(new ChartPoint(coordX, coordY, SFML.Graphics.Color.Red));
                     Draw(MAIN_WINDOW);
@@ -123,7 +129,7 @@ namespace Lab15Main
                 float y = 4 * x * x - 2 * x - 22;
                 var coordX = x * COEF;
                 var coordY = 0 - y * COEF + WINDOW_HEIGHT / 2;
-                lock (new object())
+                lock (locker)
                 {
                     points.Add(new ChartPoint(coordX, coordY, SFML.Graphics.Color.Green));
                     Draw(MAIN_WINDOW);
@@ -142,7 +148,7 @@ namespace Lab15Main
                 float y = (float)Math.Log10(x * x) / (float)Math.Pow(x, 3);
                 var coordX = x * COEF;
                 var coordY = 0 - y * COEF + WINDOW_HEIGHT / 2;
-                lock (new object())
+                lock (locker)
                 {
                     points.Add(new ChartPoint(coordX, coordY, SFML.Graphics.Color.Blue));
                     Draw(MAIN_WINDOW);
@@ -157,7 +163,7 @@ namespace Lab15Main
         public static void Start()
         {
 
-            //AddButtons();
+            AddButtons();
             SubscribeEvents(MAIN_WINDOW);
             Draw(MAIN_WINDOW);
 
