@@ -51,7 +51,7 @@ namespace Lab15Main
             ClickFunction();
         }
 
-        public void Draw(RenderWindow window)
+        public virtual void Draw(RenderWindow window)
         {
             var frame = new RectangleShape();
             frame.FillColor = Color;

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using static System.Math;
@@ -29,11 +30,16 @@ namespace Lab15Main
         public static RenderWindow MAIN_WINDOW = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE, Styles.Close);
 
         public static readonly object locker = new();
-        static CancellationTokenSource source = new CancellationTokenSource();
+        static CancellationTokenSource source = new CancellationTokenSource();        
 
-        static Thread f1 = new Thread(Function1);
-        static Thread f2 = new Thread(Function2);
-        static Thread f3 = new Thread(Function3);
+        static PrioritizedThread thread1 = new PrioritizedThread();
+        static PrioritizedThread thread2 = new PrioritizedThread();
+        static PrioritizedThread thread3 = new PrioritizedThread();
+
+        public static bool IsDrawing()
+        {
+            return (thread1.Thread.IsAlive || thread2.Thread.IsAlive || thread3.Thread.IsAlive);
+        }
 
         public static void Draw(RenderWindow window)
         {
@@ -106,13 +112,13 @@ namespace Lab15Main
             ClearChart();
             source = new CancellationTokenSource();
 
-            f1 = new Thread(Function1);
-            f2 = new Thread(Function2);
-            f3 = new Thread(Function3);
+            thread1.Thread = new Thread(Function1);
+            thread2.Thread = new Thread(Function2);
+            thread3.Thread = new Thread(Function3);
 
-            f1.Start(source.Token);
-            f2.Start(source.Token);
-            f3.Start(source.Token);
+            thread1.Thread.Start(source.Token);
+            thread2.Thread.Start(source.Token);
+            thread3.Thread.Start(source.Token);
         }
 
         public static void SubscribeEvents(RenderWindow window)
@@ -125,6 +131,18 @@ namespace Lab15Main
         {
             buttons.Insert(0, new Button(1000, 50, 120, 50, "Start drawing", Begin));
             buttons.Insert(0, new Button(1000, 110, 120, 50, "Clear", ClearChart));
+
+            buttons.Insert(0, new ThreadPriorityButton(740, 50, 50, 50, thread1, 1, SFML.Graphics.Color.Red));
+            buttons.Insert(0, new ThreadPriorityButton(740, 110, 50, 50, thread1, 2, SFML.Graphics.Color.Red));
+            buttons.Insert(0, new ThreadPriorityButton(740, 170, 50, 50, thread1, 3, SFML.Graphics.Color.Red));
+
+            buttons.Insert(0, new ThreadPriorityButton(810, 50, 50, 50, thread2, 1, SFML.Graphics.Color.Green));
+            buttons.Insert(0, new ThreadPriorityButton(810, 110, 50, 50, thread2, 2, SFML.Graphics.Color.Green));
+            buttons.Insert(0, new ThreadPriorityButton(810, 170, 50, 50, thread2, 3, SFML.Graphics.Color.Green));
+
+            buttons.Insert(0, new ThreadPriorityButton(880, 50, 50, 50, thread3, 1, SFML.Graphics.Color.Blue));
+            buttons.Insert(0, new ThreadPriorityButton(880, 110, 50, 50, thread3, 2, SFML.Graphics.Color.Blue));
+            buttons.Insert(0, new ThreadPriorityButton(880, 170, 50, 50, thread3, 3, SFML.Graphics.Color.Blue));
         }
 
         public static void Function1(object? token)
@@ -133,29 +151,33 @@ namespace Lab15Main
             {
                 throw new ArgumentNullException();
             }
-            try
+            if (thread2.Priority < thread1.Priority)
             {
-                for (float x = 0.0f; x < WINDOW_WIDTH / SCALE; x += EPSI)
+                thread2.Thread.Join();
+            }
+            if (thread3.Priority < thread1.Priority)
+            {
+                thread3.Thread.Join();
+            }
+            for (float x = 0.0f; x < WINDOW_WIDTH / SCALE; x += EPSI)
+            {
+                if (((CancellationToken)token).IsCancellationRequested)
                 {
-                    if (((CancellationToken)token).IsCancellationRequested)
-                    {
-                        return;
-                    }
-                    float y = (float)Math.Sin(x);
-                    var coordX = x * COEF;
-                    var coordY = 0 - y * COEF + WINDOW_HEIGHT / 2;
-                    lock (locker)
-                    {
-                        points.Add(new ChartPoint(coordX, coordY, SFML.Graphics.Color.Red));
-                        Draw(MAIN_WINDOW);
-                    }
-                    if (coordY < 0)
-                    {
-                        return;
-                    }
+                    return;
+                }                
+                float y = (float)Math.Sin(x);
+                var coordX = x * COEF;
+                var coordY = 0 - y * COEF + WINDOW_HEIGHT / 2;
+                lock (locker)
+                {
+                    points.Add(new ChartPoint(coordX, coordY, SFML.Graphics.Color.Red));
+                    Draw(MAIN_WINDOW);
+                }
+                if (coordY < 0)
+                {
+                    return;
                 }
             }
-            catch (ThreadInterruptedException) { }
         }
 
         public static void Function2(object? token)
@@ -164,29 +186,33 @@ namespace Lab15Main
             {
                 throw new ArgumentNullException();
             }
-            try
+            if (thread1.Priority < thread2.Priority)
             {
-                for (float x = 0.0f; x < WINDOW_WIDTH / SCALE; x += EPSI)
+                thread1.Thread.Join();
+            }
+            if (thread3.Priority < thread2.Priority)
+            {
+                thread3.Thread.Join();
+            }
+            for (float x = 0.0f; x < WINDOW_WIDTH / SCALE; x += EPSI)
+            {
+                if (((CancellationToken)token).IsCancellationRequested)
                 {
-                    if (((CancellationToken)token).IsCancellationRequested)
-                    {
-                        return;
-                    }
-                    float y = 4 * x * x - 2 * x - 22;
-                    var coordX = x * COEF;
-                    var coordY = 0 - y * COEF + WINDOW_HEIGHT / 2;
-                    lock (locker)
-                    {
-                        points.Add(new ChartPoint(coordX, coordY, SFML.Graphics.Color.Green));
-                        Draw(MAIN_WINDOW);
-                    }
-                    if (coordY < 0)
-                    {
-                        return;
-                    }
+                    return;
+                }                
+                float y = 4 * x * x - 2 * x - 22;
+                var coordX = x * COEF;
+                var coordY = 0 - y * COEF + WINDOW_HEIGHT / 2;
+                lock (locker)
+                {
+                    points.Add(new ChartPoint(coordX, coordY, SFML.Graphics.Color.Green));
+                    Draw(MAIN_WINDOW);
+                }
+                if (coordY < 0)
+                {
+                    return;
                 }
             }
-            catch (ThreadInterruptedException) { }            
         }
 
         public static void Function3(object? token)
@@ -195,33 +221,44 @@ namespace Lab15Main
             {
                 throw new ArgumentNullException();
             }
-            try
+            if (thread1.Priority < thread3.Priority)
             {
-                for (float x = 0.0f; x < WINDOW_WIDTH / SCALE; x += EPSI)
+                thread1.Thread.Join();
+            }
+            if (thread2.Priority < thread3.Priority)
+            {
+                thread2.Thread.Join();
+            }
+            for (float x = 0.0f; x < WINDOW_WIDTH / SCALE; x += EPSI)
+            {
+                if (((CancellationToken)token).IsCancellationRequested)
                 {
-                    if (((CancellationToken)token).IsCancellationRequested)
-                    {
-                        return;
-                    }
-                    float y = (float)Math.Log10(x * x) / (float)Math.Pow(x, 3);
-                    var coordX = x * COEF;
-                    var coordY = 0 - y * COEF + WINDOW_HEIGHT / 2;
-                    lock (locker)
-                    {
-                        points.Add(new ChartPoint(coordX, coordY, SFML.Graphics.Color.Blue));
-                        Draw(MAIN_WINDOW);
-                    }
-                    if (coordY < 0)
-                    {
-                        return;
-                    }
+                    return;
+                }              
+                float y = (float)Math.Log10(x * x) / (float)Math.Pow(x, 3);
+                var coordX = x * COEF;
+                var coordY = 0 - y * COEF + WINDOW_HEIGHT / 2;
+                lock (locker)
+                {
+                    points.Add(new ChartPoint(coordX, coordY, SFML.Graphics.Color.Blue));
+                    Draw(MAIN_WINDOW);
+                }
+                if (coordY < 0)
+                {
+                    return;
                 }
             }
-            catch (ThreadInterruptedException) { }            
         }
 
         public static void Start()
         {
+            thread1.Priority = 1;
+            thread2.Priority = 1;
+            thread3.Priority = 1;
+
+            thread1.Thread = new Thread(Function1);
+            thread2.Thread = new Thread(Function2);
+            thread3.Thread = new Thread(Function3);
 
             AddButtons();
             SubscribeEvents(MAIN_WINDOW);
