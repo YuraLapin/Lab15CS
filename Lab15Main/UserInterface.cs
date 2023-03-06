@@ -17,6 +17,8 @@ namespace Lab15Main
     {
         public static List<Button> buttons = new List<Button>();
         public static List<ChartPoint> points = new List<ChartPoint>();
+        public static List<Label> labels = new List<Label>();
+        public static Label errorMsg = new Label(WINDOW_WIDTH / 2, WINDOW_HEIGHT - 200, "");
 
         public const uint WINDOW_WIDTH = 1080;
         public const uint WINDOW_HEIGHT = 720;
@@ -38,7 +40,7 @@ namespace Lab15Main
 
         public static bool IsDrawing()
         {
-            return (thread1.Thread.IsAlive || thread2.Thread.IsAlive || thread3.Thread.IsAlive);
+            return thread1.Thread.IsAlive || thread2.Thread.IsAlive || thread3.Thread.IsAlive;
         }
 
         public static void Draw(RenderWindow window)
@@ -46,19 +48,34 @@ namespace Lab15Main
             window.SetActive(true);
             window.Clear(SFML.Graphics.Color.White);
 
-            buttons.Reverse();
-            foreach (Button element in buttons)
+            lock(locker)
             {
-                element.Draw(window);
-            }
-            buttons.Reverse();
+                buttons.Reverse();
+                foreach (Button button in buttons)
+                {
+                    button.Draw(window);
+                }
+                buttons.Reverse();
+            }            
 
-            points.Reverse();
-            foreach (ChartPoint element in points)
+            lock(locker)
             {
-                element.Draw(window);
+                points.Reverse();
+                foreach (ChartPoint point in points)
+                {
+                    point.Draw(window);
+                }
+                points.Reverse();
             }
-            points.Reverse();
+            
+            labels.Reverse();
+            foreach (Label label in labels)
+            {
+                label.Draw(window);
+            }
+            labels.Reverse();
+
+            errorMsg.Draw(window);
 
             window.Display();
             window.SetActive(false);
@@ -105,6 +122,8 @@ namespace Lab15Main
         {
             source.Cancel();
             points = new List<ChartPoint>();
+            errorMsg.Txt = "";
+            Draw(MAIN_WINDOW);
         }
 
         public static void Begin()
@@ -127,10 +146,10 @@ namespace Lab15Main
             window.MouseButtonPressed += MousePressed;
         }
 
-        public static void AddButtons()
+        public static void AddUI()
         {
             buttons.Insert(0, new Button(1000, 50, 120, 50, "Start drawing", Begin));
-            buttons.Insert(0, new Button(1000, 110, 120, 50, "Clear", ClearChart));
+            buttons.Insert(0, new Button(1000, 110, 120, 50, "Stop", ClearChart));
 
             buttons.Insert(0, new ThreadPriorityButton(740, 50, 50, 50, thread1, 1, SFML.Graphics.Color.Red));
             buttons.Insert(0, new ThreadPriorityButton(740, 110, 50, 50, thread1, 2, SFML.Graphics.Color.Red));
@@ -143,6 +162,9 @@ namespace Lab15Main
             buttons.Insert(0, new ThreadPriorityButton(880, 50, 50, 50, thread3, 1, SFML.Graphics.Color.Blue));
             buttons.Insert(0, new ThreadPriorityButton(880, 110, 50, 50, thread3, 2, SFML.Graphics.Color.Blue));
             buttons.Insert(0, new ThreadPriorityButton(880, 170, 50, 50, thread3, 3, SFML.Graphics.Color.Blue));
+
+            labels.Add(new Label(810, 220, "Thread sequence"));
+            errorMsg.Color = SFML.Graphics.Color.Red;
         }
 
         public static void Function1(object? token)
@@ -151,11 +173,11 @@ namespace Lab15Main
             {
                 throw new ArgumentNullException();
             }
-            if (thread2.Priority < thread1.Priority)
+            if (thread2.Priority < thread1.Priority && thread2.Thread.ThreadState != ThreadState.Unstarted)
             {
                 thread2.Thread.Join();
             }
-            if (thread3.Priority < thread1.Priority)
+            if (thread3.Priority < thread1.Priority && thread3.Thread.ThreadState != ThreadState.Unstarted)
             {
                 thread3.Thread.Join();
             }
@@ -176,7 +198,7 @@ namespace Lab15Main
                 if (coordY < 0)
                 {
                     return;
-                }
+                }                
             }
         }
 
@@ -186,11 +208,11 @@ namespace Lab15Main
             {
                 throw new ArgumentNullException();
             }
-            if (thread1.Priority < thread2.Priority)
+            if (thread1.Priority < thread2.Priority && thread1.Thread.ThreadState != ThreadState.Unstarted)
             {
                 thread1.Thread.Join();
             }
-            if (thread3.Priority < thread2.Priority)
+            if (thread3.Priority < thread2.Priority && thread3.Thread.ThreadState != ThreadState.Unstarted)
             {
                 thread3.Thread.Join();
             }
@@ -221,11 +243,11 @@ namespace Lab15Main
             {
                 throw new ArgumentNullException();
             }
-            if (thread1.Priority < thread3.Priority)
+            if (thread1.Priority < thread3.Priority && thread1.Thread.ThreadState != ThreadState.Unstarted)
             {
                 thread1.Thread.Join();
             }
-            if (thread2.Priority < thread3.Priority)
+            if (thread2.Priority < thread3.Priority && thread2.Thread.ThreadState != ThreadState.Unstarted)
             {
                 thread2.Thread.Join();
             }
@@ -260,7 +282,7 @@ namespace Lab15Main
             thread2.Thread = new Thread(Function2);
             thread3.Thread = new Thread(Function3);
 
-            AddButtons();
+            AddUI();
             SubscribeEvents(MAIN_WINDOW);
             Draw(MAIN_WINDOW);
 

@@ -36,13 +36,13 @@ namespace Lab15Main
             {
                 if (UserInterface.IsDrawing())
                 {
-                    Console.WriteLine("ERROR");
+                    UserInterface.errorMsg.Txt = "Wait for threads to finish or stop them manually";
                     return;
                 }
                 else
                 {
-                    Console.WriteLine("Priority changed to " + Priority.ToString());
                     Thread.Priority = Priority;
+                    UserInterface.errorMsg.Txt = "";
                     UserInterface.Draw(UserInterface.MAIN_WINDOW);
                 }
             };
