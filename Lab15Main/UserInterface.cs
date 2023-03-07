@@ -50,30 +50,24 @@ namespace Lab15Main
 
             lock(locker)
             {
-                buttons.Reverse();
                 foreach (Button button in buttons)
                 {
                     button.Draw(window);
                 }
-                buttons.Reverse();
             }            
 
             lock(locker)
             {
-                points.Reverse();
                 foreach (ChartPoint point in points)
                 {
                     point.Draw(window);
                 }
-                points.Reverse();
             }
             
-            labels.Reverse();
             foreach (Label label in labels)
             {
                 label.Draw(window);
             }
-            labels.Reverse();
 
             errorMsg.Draw(window);
 
@@ -113,16 +107,16 @@ namespace Lab15Main
                             element.Click();
                             break;
                         }
-                    }                    
-                }                
+                    }
+                }
             }
         }
 
         public static void ClearChart()
         {
             source.Cancel();
-            points = new List<ChartPoint>();
             errorMsg.Txt = "";
+            points = new List<ChartPoint>();
             Draw(MAIN_WINDOW);
         }
 
@@ -134,6 +128,10 @@ namespace Lab15Main
             thread1.Thread = new Thread(Function1);
             thread2.Thread = new Thread(Function2);
             thread3.Thread = new Thread(Function3);
+
+            thread1.Thread.Priority = ThreadPriority.Highest;
+            thread2.Thread.Priority = ThreadPriority.Highest;
+            thread3.Thread.Priority = ThreadPriority.Highest;
 
             thread1.Thread.Start(source.Token);
             thread2.Thread.Start(source.Token);
@@ -148,20 +146,20 @@ namespace Lab15Main
 
         public static void AddUI()
         {
-            buttons.Insert(0, new Button(1000, 50, 120, 50, "Start drawing", Begin));
-            buttons.Insert(0, new Button(1000, 110, 120, 50, "Stop", ClearChart));
+            buttons.Add(new Button(1000, 50, 120, 50, "Start drawing", Begin));
+            buttons.Add(new Button(1000, 110, 120, 50, "Stop", ClearChart));
 
-            buttons.Insert(0, new ThreadPriorityButton(740, 50, 50, 50, thread1, 1, SFML.Graphics.Color.Red));
-            buttons.Insert(0, new ThreadPriorityButton(740, 110, 50, 50, thread1, 2, SFML.Graphics.Color.Red));
-            buttons.Insert(0, new ThreadPriorityButton(740, 170, 50, 50, thread1, 3, SFML.Graphics.Color.Red));
+            buttons.Add(new ThreadPriorityButton(740, 50, 50, 50, thread1, 1, SFML.Graphics.Color.Red));
+            buttons.Add(new ThreadPriorityButton(740, 110, 50, 50, thread1, 2, SFML.Graphics.Color.Red));
+            buttons.Add(new ThreadPriorityButton(740, 170, 50, 50, thread1, 3, SFML.Graphics.Color.Red));
 
-            buttons.Insert(0, new ThreadPriorityButton(810, 50, 50, 50, thread2, 1, SFML.Graphics.Color.Green));
-            buttons.Insert(0, new ThreadPriorityButton(810, 110, 50, 50, thread2, 2, SFML.Graphics.Color.Green));
-            buttons.Insert(0, new ThreadPriorityButton(810, 170, 50, 50, thread2, 3, SFML.Graphics.Color.Green));
+            buttons.Add(new ThreadPriorityButton(810, 50, 50, 50, thread2, 1, SFML.Graphics.Color.Green));
+            buttons.Add(new ThreadPriorityButton(810, 110, 50, 50, thread2, 2, SFML.Graphics.Color.Green));
+            buttons.Add(new ThreadPriorityButton(810, 170, 50, 50, thread2, 3, SFML.Graphics.Color.Green));
 
-            buttons.Insert(0, new ThreadPriorityButton(880, 50, 50, 50, thread3, 1, SFML.Graphics.Color.Blue));
-            buttons.Insert(0, new ThreadPriorityButton(880, 110, 50, 50, thread3, 2, SFML.Graphics.Color.Blue));
-            buttons.Insert(0, new ThreadPriorityButton(880, 170, 50, 50, thread3, 3, SFML.Graphics.Color.Blue));
+            buttons.Add(new ThreadPriorityButton(880, 50, 50, 50, thread3, 1, SFML.Graphics.Color.Blue));
+            buttons.Add(new ThreadPriorityButton(880, 110, 50, 50, thread3, 2, SFML.Graphics.Color.Blue));
+            buttons.Add(new ThreadPriorityButton(880, 170, 50, 50, thread3, 3, SFML.Graphics.Color.Blue));
 
             labels.Add(new Label(810, 220, "Thread sequence"));
             errorMsg.Color = SFML.Graphics.Color.Red;
@@ -189,8 +187,8 @@ namespace Lab15Main
                 }                
                 float y = (float)Math.Sin(x);
                 var coordX = x * COEF;
-                var coordY = 0 - y * COEF + WINDOW_HEIGHT / 2;
-                lock (locker)
+                var coordY = 0 - y * COEF + WINDOW_HEIGHT / 2; 
+                lock(locker)
                 {
                     points.Add(new ChartPoint(coordX, coordY, SFML.Graphics.Color.Red));
                     Draw(MAIN_WINDOW);
