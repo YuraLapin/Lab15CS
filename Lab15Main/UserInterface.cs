@@ -112,16 +112,30 @@ namespace Lab15Main
             }
         }
 
-        public static void ClearChart()
+        public static void Stop()
         {
             source.Cancel();
             errorMsg.Txt = "";
-            points = new List<ChartPoint>();
+            Draw(MAIN_WINDOW);
+        }
+
+        public static void ClearChart()
+        {
+            if (IsDrawing())
+            {
+                errorMsg.Txt = "Stop drawing first";
+            }
+            else
+            {
+                errorMsg.Txt = "";
+                points = new List<ChartPoint>();
+            }
             Draw(MAIN_WINDOW);
         }
 
         public static void Begin()
         {
+            Stop();
             ClearChart();
             source = new CancellationTokenSource();
 
@@ -147,7 +161,8 @@ namespace Lab15Main
         public static void AddUI()
         {
             buttons.Add(new Button(1000, 50, 120, 50, "Start drawing", Begin));
-            buttons.Add(new Button(1000, 110, 120, 50, "Stop", ClearChart));
+            buttons.Add(new Button(1000, 110, 120, 50, "Stop", Stop));
+            buttons.Add(new Button(1000, 170, 120, 50, "Clear", ClearChart));
 
             buttons.Add(new ThreadPriorityButton(740, 50, 50, 50, thread1, 1, SFML.Graphics.Color.Red));
             buttons.Add(new ThreadPriorityButton(740, 110, 50, 50, thread1, 2, SFML.Graphics.Color.Red));
