@@ -25,6 +25,8 @@ namespace Lab15Main
         public const string WINDOW_TITLE = "Графики";
         public const string FONT = "calibri.ttf";
 
+        public const int SLEEP_INTERVAL = 5;
+
         public const float EPSI = 0.075f;
         public const float COEF = 10f;
         public const float SCALE = 10f;
@@ -211,7 +213,8 @@ namespace Lab15Main
                 if (coordY < 0)
                 {
                     return;
-                }                
+                }
+                Thread.Sleep(SLEEP_INTERVAL);
             }
         }
 
@@ -247,6 +250,7 @@ namespace Lab15Main
                 {
                     return;
                 }
+                Thread.Sleep(SLEEP_INTERVAL);
             }
         }
 
@@ -282,6 +286,7 @@ namespace Lab15Main
                 {
                     return;
                 }
+                Thread.Sleep(SLEEP_INTERVAL);
             }
         }
 
@@ -300,7 +305,7 @@ namespace Lab15Main
             Draw(MAIN_WINDOW);
 
             while (MAIN_WINDOW.IsOpen)
-            {
+            { 
                 MAIN_WINDOW.DispatchEvents();
             }
         }
