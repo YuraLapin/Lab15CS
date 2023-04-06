@@ -88,7 +88,7 @@ namespace Lab15Main
             }
         }
 
-        public static void MousePressed(object? sender, EventArgs e)
+        public static void MousePressed(object? sender, MouseButtonEventArgs e)
         {
             if (sender == null)
             {
@@ -98,7 +98,7 @@ namespace Lab15Main
             {
                 var window = (RenderWindow)sender;
                 var position = Mouse.GetPosition(window);
-                if (((MouseButtonEventArgs)e).Button == Mouse.Button.Left)
+                if (e.Button == Mouse.Button.Left)
                 {
                     foreach (Button element in buttons)
                     {
